@@ -21,6 +21,7 @@ unsigned short getBiosGraphicsMode() {
   return regs.h.al;
 }
 
+// cli and sti are strongly needed at cmos readouts
 #ifdef __WATCOMC__
 #pragma aux dosCLI="cli" modify[]
 #pragma aux dosSTI="sti" modify[]
@@ -45,13 +46,13 @@ unsigned char dosCmosUpdateInProgress() {
 
 int rtcRead(unsigned char reg) {
   while(dosCmosUpdateInProgress()) {;}
-  return (int)dosCmosRead(reg, true);
+  return (int)dosCmosRead(reg, true); // the NMI doesn't get reenabled after this, it would be more problematic if it is enabled during this
 }
 
 void clearScreenRam() {
   int y,j,x;
   for (y = 0; y < 480; y++) {
-    for (j = 0; j < 4; j++) {
+    for (j = 0; j < 4; j++) { // j = bit plane
       outp(0x3c4, 2);
       outp(0x3c5, 1<<j);
       for (x = 0; x < 640 / 8 / 4; x++) {
@@ -64,7 +65,7 @@ void clearScreenRam() {
 void blitZiffer(long xp, long yp, long letter) {
   long y,j,x;
   for (y = 0; y < 128; y++) {
-    for (j = 0; j < 4; j++) {
+    for (j = 0; j < 4; j++) { // j = bit plane
       outp(0x3c4, 2);
       outp(0x3c5, 1<<j);
       unsigned long *read = &ziffern[letter*((96*128)/32)+y*(96/32)];
@@ -106,7 +107,8 @@ void update() {
 
 int main(int argc, const char *argv[]) {
   unsigned short mode = getBiosGraphicsMode();
-  setBiosGraphicsMode(0x12);
+
+  setBiosGraphicsMode(0x12); // 640x480 with 16 colors
   clearScreenRam();
 
   while(!kbhit()) {
