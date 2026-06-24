@@ -4,6 +4,9 @@
 #include <stdio.h>
 #include <string.h>
 
+// Be aware that if you use a CRT (Monitor/Television) this may sort of burn in when used very long time.
+// On todays (as of 2026) monitors there is almost no burning in, and if some is burn in it reverses after some time again.
+
 unsigned long ziffern[] = {
 #include "ZIFFERN.BIN"
 };
